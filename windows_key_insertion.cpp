@@ -4,6 +4,15 @@
 #include <fstream>
 using namespace std;
 
+/*
+This program uses the windows class INPUT contained in the windows.h header file to mimic user keyboard inputs. 
+
+WARNING: improper use of this may cause issues with your machine
+*/
+
+// FILE TO READ COMMANDS FROM
+string cmdfile = "examplecommandlist.txt";
+
 //https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
 #define winlen 139
 
@@ -157,13 +166,19 @@ int main()
 	int cmdlen = 0; // length of cmdlist array
 
 	fstream fin;
-	fin.open("commandlist.txt", std::ios::in);
+	fin.open(cmdfile, std::ios::in);
 
 	string instring;
 	while (!fin.eof() && fin.is_open()) {
 		getline(fin, instring);
 		cmdlen = commandsplitter(cmdlist, instring);
-		cout << "cmdlist[0] =" << cmdlist[0] << " cmdlist[1] =" << cmdlist[1] << " cmdlen =" << cmdlen << endl;
+		
+		// prints command list for debugging purposes
+		for (int i = 0; i < cmdlen; i++) {
+			cout << "cmdlist[" << i << "] = " << cmdlist[i];
+		}
+		cout << endl;
+
 		key1.multisend(cmdlist, cmdlen);
 		
 		// clear cmdlist
@@ -173,4 +188,6 @@ int main()
 		cmdlen = 0;
 	}
 	fin.close();
+	cout << "PRESS ANY KEY AND ENTER TO EXIT\n";
+	cin >> cmdlist[0];
 }
