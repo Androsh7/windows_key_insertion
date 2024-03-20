@@ -1,0 +1,3 @@
+SHIFT :A # prints an upper case a
+VOL   UP # spacing is ignored when reading commands
+# VOL UP will not be read since the '#' sign stops line reading
