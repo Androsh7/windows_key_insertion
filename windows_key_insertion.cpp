@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include <windows.h>
 #include <fstream>
 using namespace std;
@@ -10,8 +11,9 @@ This program uses the windows class INPUT contained in the windows.h header file
 WARNING: improper use of this may cause issues with your machine
 */
 
-// FILE TO READ COMMANDS FROM
-string cmdfile = "examplecommandlist.txt";
+// MACRO SETUP
+vector<string> cmdfiles = {"examplecommandlist.txt"};	// files to read commands from
+vector<string> macros = { "SHIFT:ENTER" };			// keystrokes to look for
 
 //https://learn.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes
 #define winlen 139
@@ -30,6 +32,30 @@ const int wincodelist[winlen] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x08, 0x09
 	0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5F, 0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F, 0x70, 0x71, 0x72, 0x73, 0x74, 
 	0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F, 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x90, 0x91, 0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 
 	0xAC, 0xAD, 0xAE, 0xAF, 0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xB7 };
+
+// text to winkey
+char letterlist[] = {
+	'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+	'!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
+	' ','\n','\t'};
+string lettercommand[] = {
+	"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+	"SHIFT:A", "SHIFT:B", "SHIFT:C", "SHIFT:D", "SHIFT:E", "SHIFT:F", "SHIFT:G", "SHIFT:H", "SHIFT:I", "SHIFT:J", "SHIFT:K", "SHIFT:L", "SHIFT:M", "SHIFT:N", "SHIFT:O", "SHIFT:P", "SHIFT:Q", "SHIFT:R", "SHIFT:S", "SHIFT:T", "SHIFT:U", "SHIFT:V", "SHIFT:W", "SHIFT:X", "SHIFT:Y", "SHIFT:Z",
+	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", 
+	"SHIFT:1", "SHIFT:2", "SHIFT:3", "SHIFT:4", "SHIFT:5", "SHIFT:6", "SHIFT:7", "SHIFT:8", "SHIFT:9", "SHIFT:0",
+	"SPACE", "ENTER", "TAB"};
+int letterlistlen = sizeof(letterlist) / sizeof(char);
+
+string lettertocmd(char input) {
+	int index;
+	for (index = 0; index < letterlistlen; index++) {
+		if (letterlist[index] == input) break;
+	}
+
+	return lettercommand[index];
+}
 
 // wincmd structure and function
 struct wincmd {
@@ -142,7 +168,7 @@ public:
 	}
 };
 
-// takes a string delimited by colons (:) and splits it into a maximum of 5 commandds
+// takes a string delimited by colons (:) and splits it into the specified outlist
 int commandsplitter(string* outlist, string searchstring) {
 	int i = 0;
 	int cmd = 0;
@@ -159,35 +185,79 @@ int commandsplitter(string* outlist, string searchstring) {
 	return cmd + 1;
 }
 
+int mode = 0;
+string userIn;
+
+windowsInput key1;
+string cmdlist[5];	// max of 5 simultaneous commands
+int cmdlen = 0; // length of cmdlist array
+fstream fin;
+
 int main()
 {
-	windowsInput key1;
-	string cmdlist[5];	// max of 5 simultaneous commands
-	int cmdlen = 0; // length of cmdlist array
-
-	fstream fin;
-	fin.open(cmdfile, std::ios::in);
-
-	string instring;
-	while (!fin.eof() && fin.is_open()) {
-		getline(fin, instring);
-		cmdlen = commandsplitter(cmdlist, instring);
-		
-		// prints command list for debugging purposes
-		for (int i = 0; i < cmdlen; i++) {
-			cout << "cmdlist[" << i << "] = " << cmdlist[i];
+	while (mode == 0) {
+		cout << "WINDOWS_KEY_INSERTION" << endl;
+		cout << "(1) Macro Mode\n(Q) Quit" << endl;
+		cin >> userIn;
+		if ('1' == userIn[0]) {
+			mode = 2;
 		}
-		cout << endl;
-
-		key1.multisend(cmdlist, cmdlen);
-		
-		// clear cmdlist
-		for (int i = 0; i < cmdlen; i++) {
-			cmdlist[i] = "";
+		if ('Q' == userIn[0] || 'q' == userIn[0]) {
+			mode = -1;
 		}
-		cmdlen = 0;
 	}
-	fin.close();
-	cout << "PRESS ANY KEY AND ENTER TO EXIT\n";
+
+	while (mode == 2) {
+		fin.open(cmdfiles[0], std::ios::in);
+
+		string instring;
+		while (!fin.eof() && fin.is_open()) {
+			getline(fin, instring);
+			
+			// text entry mode
+			if (instring[0] == '$') {
+				for (int i = 1; i < instring.length(); i++) {
+					cmdlen = commandsplitter(cmdlist, lettertocmd(instring[i]));
+
+					// prints command list for debugging purposes
+					for (int i = 0; i < cmdlen; i++) {
+						cout << "cmdlist[" << i << "] = " << cmdlist[i];
+					}
+					cout << endl;
+
+					key1.multisend(cmdlist, cmdlen);
+
+					// clear cmdlist
+					for (int i = 0; i < cmdlen; i++) {
+						cmdlist[i] = "";
+					}
+					cmdlen = 0;
+				}
+			}
+
+			// standard entry
+			else {
+				cmdlen = commandsplitter(cmdlist, instring);
+
+				// prints command list for debugging purposes
+				for (int i = 0; i < cmdlen; i++) {
+					cout << "cmdlist[" << i << "] = " << cmdlist[i];
+				}
+				cout << endl;
+
+				key1.multisend(cmdlist, cmdlen);
+
+				// clear cmdlist
+				for (int i = 0; i < cmdlen; i++) {
+					cmdlist[i] = "";
+				}
+				cmdlen = 0;
+			}
+		}
+
+
+		fin.close();
+		mode = 1;
+	}
 	cin >> cmdlist[0];
 }
