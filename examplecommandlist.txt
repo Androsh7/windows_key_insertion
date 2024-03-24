@@ -2,3 +2,15 @@ SHIFT :A # prints an upper case a
 VOL   UP # spacing is ignored when reading commands
 # VOL UP will not be read since the '#' sign stops line reading
 vol up # will not work as the program only accepts all caps
+$ HELLO WORLD! # this will have the script determine the keybinds required to print " HELLO WORLD!" instead of looking for a command
+
+# Print ABCs:
+$abcdefghijklmnopqrstuvwxyz
+TAB
+$ABCDEFGHIJKLMNOPQRSTUVWXYZ
+TAB
+$1234567890
+TAB
+$!@#$%^&*()
+TAB
+ENTER
